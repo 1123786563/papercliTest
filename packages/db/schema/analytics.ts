@@ -111,8 +111,8 @@ export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => 
   }),
 }));
 
-// Types
-interface EventMetadata {
+// Types - exported for use in services
+export interface EventMetadata {
   // For click events
   url?: string;
   linkText?: string;
@@ -129,7 +129,7 @@ interface EventMetadata {
   [key: string]: unknown;
 }
 
-interface EventSource {
+export interface EventSource {
   referrer?: string;
   utmSource?: string;
   utmMedium?: string;

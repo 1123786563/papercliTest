@@ -171,8 +171,8 @@ export const campaignContentRelations = relations(campaignContent, ({ one }) => 
   }),
 }));
 
-// Types
-interface CampaignSettings {
+// Types - exported for use in services
+export interface CampaignSettings {
   sendWindow?: {
     startHour: number;
     endHour: number;
@@ -192,7 +192,7 @@ interface CampaignSettings {
   };
 }
 
-interface CampaignMetrics {
+export interface CampaignMetrics {
   totalRecipients?: number;
   sent?: number;
   delivered?: number;
@@ -203,7 +203,7 @@ interface CampaignMetrics {
   complained?: number;
 }
 
-interface StepConfig {
+export interface StepConfig {
   // For condition steps
   condition?: {
     field: string;

@@ -9,14 +9,10 @@ import { db } from '@prism-era/db';
 import {
   campaigns,
   campaignSteps,
-  campaignContent,
-  audiences,
-  campaignAudiences,
-  content,
   analyticsEvents,
   organizationMembers,
 } from '@prism-era/db';
-import { eq, and, or, inArray, sql, SQL } from 'drizzle-orm';
+import { eq, and, inArray, sql, SQL } from 'drizzle-orm';
 
 // Types
 export type TriggerType = 
@@ -158,15 +154,18 @@ function evaluateCondition(condition: ConditionConfig, fieldValue: unknown): boo
     case 'less_than':
       return Number(fieldValue) < Number(value);
 
+    case 'in_list':
     case 'in':
       return Array.isArray(value) && value.includes(fieldValue);
 
     case 'not_in':
       return Array.isArray(value) && !value.includes(fieldValue);
 
+    case 'is_set':
     case 'exists':
       return fieldValue !== undefined && fieldValue !== null;
 
+    case 'is_not_set':
     case 'not_exists':
       return fieldValue === undefined || fieldValue === null;
 
@@ -335,8 +334,6 @@ async function executeStep(
     userData?: Record<string, unknown>;
   }
 ): Promise<boolean> {
-  const config = step.config as ActionConfig;
-
   switch (step.stepType) {
     case 'content':
       // Log content delivery event
@@ -348,7 +345,7 @@ async function executeStep(
           campaignId: step.campaignId,
           userId: context.userId,
           anonymousId: context.anonymousId,
-          metadata: { stepId: step.id, stepName: step.name },
+          metadata: { stepId: step.id, stepName: step.name } as any,
           occurredAt: new Date(),
         });
       }
@@ -360,18 +357,19 @@ async function executeStep(
 
     case 'condition':
       // Evaluate condition and continue only if true
-      const conditionConfig = config as any;
-      if (conditionConfig?.condition) {
+      const stepConfig = step.config as any;
+      if (stepConfig?.condition) {
         return evaluateCondition(
-          conditionConfig.condition,
-          context.userData?.[conditionConfig.condition.field]
+          stepConfig.condition,
+          context.userData?.[stepConfig.condition.field]
         );
       }
       return true;
 
     case 'action':
       // Execute custom action
-      return await executeCustomAction(config, organizationId, context);
+      const actionConfig = step.config as any;
+      return await executeCustomAction(actionConfig, organizationId, context);
 
     default:
       return false;
@@ -382,7 +380,7 @@ async function executeStep(
  * Execute a custom action
  */
 async function executeCustomAction(
-  action: ActionConfig,
+  action: { type?: string; [key: string]: any },
   organizationId: string,
   context: {
     userId?: string;
@@ -391,10 +389,14 @@ async function executeCustomAction(
     userData?: Record<string, unknown>;
   }
 ): Promise<boolean> {
+  if (!action?.type) {
+    return false;
+  }
+
   switch (action.type) {
     case 'notify_webhook':
       // Webhook notification (implementation would use fetch)
-      const webhookUrl = action.config.url as string;
+      const webhookUrl = action.config?.url as string;
       if (webhookUrl) {
         // In production, this would make an HTTP request
         console.log(`[Automation] Webhook notification to: ${webhookUrl}`);
@@ -405,18 +407,18 @@ async function executeCustomAction(
     case 'add_tag':
     case 'remove_tag':
       // Tag operations (would integrate with user profile system)
-      console.log(`[Automation] ${action.type}: ${action.config.tagName}`);
+      console.log(`[Automation] ${action.type}: ${action.config?.tagName}`);
       return true;
 
     case 'add_to_segment':
     case 'remove_from_segment':
       // Segment operations
-      console.log(`[Automation] ${action.type}: ${action.config.segmentId}`);
+      console.log(`[Automation] ${action.type}: ${action.config?.segmentId}`);
       return true;
 
     case 'update_field':
       // Field update operations
-      console.log(`[Automation] Update field ${action.config.field} = ${action.config.value}`);
+      console.log(`[Automation] Update field ${action.config?.field} = ${action.config?.value}`);
       return true;
 
     default:
@@ -471,10 +473,6 @@ export async function getExecutionHistory(
 
   if (campaignId) {
     conditions.push(eq(analyticsEvents.campaignId, campaignId));
-  }
-
-  if (options?.startDate) {
-    // Would add date filter here
   }
 
   const events = await db

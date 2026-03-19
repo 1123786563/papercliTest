@@ -18,6 +18,18 @@ export * from './analytics';
 // Re-export commonly used Drizzle utilities
 export { relations } from 'drizzle-orm';
 
+// Export types that are used in services
+// These are the inline interface types from schema files
+
+// From audiences.ts
+export type { SegmentCriteria, SegmentCondition, MemberCountStats } from './audiences';
+
+// From campaigns.ts
+export type { CampaignSettings, CampaignMetrics, StepConfig } from './campaigns';
+
+// From analytics.ts
+export type { EventMetadata, EventSource } from './analytics';
+
 /**
  * Schema Overview
  *

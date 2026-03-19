@@ -11,10 +11,15 @@ import {
   campaignAudiences,
   organizationMembers,
 } from '@prism-era/db';
-import type { MemberCountStats } from '@prism-era/db';
 import { eq, and, or, like, inArray, sql, count, SQL } from 'drizzle-orm';
 
-// Re-export types from db package for consistency
+// Local types
+export interface MemberCountStats {
+  total: number;
+  lastCalculatedAt: string;
+}
+
+// Re-export types for use in routes
 export type SegmentCriteria = {
   operator: 'and' | 'or';
   conditions: SegmentCondition[];
@@ -272,7 +277,8 @@ export async function getAudienceStats(organizationId: string) {
     .where(eq(audiences.organizationId, organizationId));
 
   const totalMembers = audiencesList.reduce((sum, a) => {
-    const count = (a.memberCount as MemberCountStats)?.total || 0;
+    const mc = a.memberCount as MemberCountStats | null;
+    const count = mc?.total || 0;
     return sum + count;
   }, 0);
 

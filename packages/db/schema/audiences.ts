@@ -80,8 +80,8 @@ export const campaignAudiencesRelations = relations(campaignAudiences, ({ one })
   }),
 }));
 
-// Types for segmentation criteria
-interface SegmentCriteria {
+// Types for segmentation criteria - exported for use in services
+export interface SegmentCriteria {
   // Operator for combining conditions
   operator: 'and' | 'or';
 
@@ -92,7 +92,7 @@ interface SegmentCriteria {
   groups?: SegmentCriteria[];
 }
 
-interface SegmentCondition {
+export interface SegmentCondition {
   field: string;  // e.g., 'email', 'createdAt', 'tags', 'lastActiveAt'
   operator: 'equals' | 'not_equals' | 'contains' | 'not_contains' |
              'starts_with' | 'ends_with' | 'greater_than' | 'less_than' |
@@ -100,7 +100,7 @@ interface SegmentCondition {
   value: unknown;
 }
 
-interface MemberCountStats {
+export interface MemberCountStats {
   total: number;
   lastCalculatedAt: string; // ISO timestamp
 }

@@ -26,10 +26,13 @@ const segmentConditionSchema = z.object({
   value: z.unknown(),
 });
 
-const segmentCriteriaSchema = z.object({
+// Define segment criteria schema without recursive reference
+const segmentCriteriaSchema: z.ZodType<{
+  operator: 'and' | 'or';
+  conditions: z.infer<typeof segmentConditionSchema>[];
+}> = z.object({
   operator: z.enum(['and', 'or']),
   conditions: z.array(segmentConditionSchema).min(1),
-  groups: z.array(z.lazy(() => segmentCriteriaSchema)).optional(),
 });
 
 const createAudienceSchema = z.object({
