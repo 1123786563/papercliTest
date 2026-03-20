@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: prism-era
-  labels:
-    name: prism-era
-    app.kubernetes.io/name: prism-era
-    app.kubernetes.io/managed-by: kustomize
